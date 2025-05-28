@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechService - Admin Boshqaruv Paneli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<header id="main-header" class="admin-header">
+    <div class="container">
+        <nav id="navbar">
+            <a href="/admin.html" class="logo-link" data-page="admin-panel-page"> <i class="fas fa-tools logo-icon"></i> <span class="logo-text">Admin Panel</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link"><i class="fas fa-home"></i> Saytga qaytish</a></li>
+                <li><button id="logoutButton" class="nav-link btn btn-danger hidden" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Chiqish</button></li>
+            </ul>
+            <button class="menu-toggle" id="menu-toggle-btn-admin" aria-label="Navigatsiya menyusini ochish/yopish">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main id="main-content-area">
+    <div class="container">
+        <section id="admin-login-page" class="page active">
+            <div class="form-container login-form-wrapper">
+                <h2 class="section-title">Admin Kirish</h2>
+                <div class="form-card">
+                    <div class="form-group">
+                        <label for="adminUsername"><i class="fas fa-user"></i> Foydalanuvchi nomi:</label>
+                        <input type="text" id="adminUsername" placeholder="admin" value="admin">
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPassword"><i class="fas fa-lock"></i> Parol:</label>
+                        <input type="password" id="adminPassword" placeholder="admin" value="admin">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="handleAdminLogin()">Kirish <i class="fas fa-sign-in-alt"></i></button>
+                    <p id="loginError" class="form-error-message"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin-panel-page" class="page hidden">
+            <h2 class="section-title">Admin Boshqaruv Paneli</h2>
+            <div class="admin-dashboard">
+                <div class="admin-card">
+                    <h3><i class="fas fa-plus-circle"></i> Yangi Xizmat Qo'shish</h3>
+                    <div class="form-group">
+                        <label for="serviceName">Xizmat nomi:</label>
+                        <input type="text" id="serviceName" placeholder="Masalan: Windows o'rnatish">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceDescription">Tavsif:</label>
+                        <textarea id="serviceDescription" placeholder="Xizmat haqida batafsil ma'lumot"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="servicePrice">Narx (so'm):</label>
+                        <input type="number" id="servicePrice" placeholder="100000">
+                    </div>
+                    <button class="btn btn-success" onclick="addServiceAdmin()">Xizmat Qo'shish</button>
+                </div>
+
+                <div class="admin-card">
+                    <h3><i class="fas fa-clock"></i> Ish Vaqti Sozlamalari</h3>
+                    <div class="form-group">
+                        <label for="workDays">Ish kunlari:</label>
+                        <select id="workDays">
+                            <option value="dush-juma">Dushanba - Juma</option>
+                            <option value="dush-shan">Dushanba - Shanba</option>
+                            <option value="har-kun">Har kuni</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="startTime">Boshlanish vaqti:</label>
+                        <input type="time" id="startTime" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="endTime">Tugash vaqti:</label>
+                        <input type="time" id="endTime" value="18:00">
+                    </div>
+                    <button class="btn btn-info" onclick="updateWorkingHoursAdmin()">Yangilash</button>
+                    <div class="current-working-hours-admin">
+                        <h4>Joriy Ish Vaqti:</h4>
+                        <p id="currentWorkingHoursAdmin">Yuklanmoqda...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card chat-management-card">
+                <h3><i class="fas fa-comments"></i> Chat Xabarlari</h3>
+                <div class="admin-chat-messages" id="adminChatMessages">
+                </div>
+                <div id="imagePreviewContainerAdmin" class="image-preview-container hidden">
+                </div>
+                <div class="chat-input-area admin-chat-input">
+                    <input type="file" id="imageInputAdmin" accept="image/*" onchange="previewImage('Admin')">
+                    <button class="btn-icon btn-attach" title="Rasm biriktirish" onclick="document.getElementById('imageInputAdmin').click()"><i class="fas fa-paperclip"></i></button>
+                    <input type="text" id="adminReplyInput" placeholder="Javob yozing..." onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendAdminReply(); }">
+                    <button class="btn btn-primary btn-send" onclick="sendAdminReply()"><i class="fas fa-paper-plane"></i> Javob Yuborish</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer id="main-footer" class="admin-footer">
+    <div class="container">
+        <p>&copy; <span id="currentYearAdmin">2025</span> TechService Admin.</p>
+    </div>
+</footer>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

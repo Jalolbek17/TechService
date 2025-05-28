@@ -1,0 +1,21 @@
+{
+  "name": "computer-service",
+  "version": "1.0.0",
+  "description": "Kompyuter xizmatlari veb-sayti",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "keywords": [
+    "computer",
+    "service",
+    "express",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.0.0"
+  }
+}

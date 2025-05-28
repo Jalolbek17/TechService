@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechService - Professional Kompyuter Xizmatlari</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<header id="main-header">
+    <div class="container">
+        <nav id="navbar">
+            <a href="#" class="logo-link" data-page="home">
+                <i class="fas fa-laptop-code logo-icon"></i> <span class="logo-text">TechService</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link" data-page="home">Bosh sahifa</a></li>
+                <li><a href="#" class="nav-link" data-page="services">Xizmatlar</a></li>
+                <li><a href="#" class="nav-link" data-page="chat">Chat</a></li>
+                <li><a href="/admin.html" class="nav-link btn btn-primary">Admin Panel</a></li>
+            </ul>
+            <button class="menu-toggle" id="menu-toggle-btn" aria-label="Navigatsiya menyusini ochish/yopish">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main id="main-content-area">
+    <div class="container">
+        <section id="home" class="page active">
+            <div class="hero-section">
+                <h1 class="hero-title">Kompleks Kompyuter Yechimlari</h1>
+                <p class="hero-subtitle">Sizning texnologik ehtiyojlaringiz uchun professional xizmatlar.</p>
+                <button class="btn btn-cta" onclick="showPage('services')">Xizmatlarimizni Ko'ring <i class="fas fa-arrow-right"></i></button>
+            </div>
+            <div class="working-hours-display-card">
+                <h3><i class="far fa-clock"></i> Bizning Ish Vaqtimiz:</h3>
+                <p id="currentWorkingHoursUser">Yuklanmoqda...</p>
+            </div>
+        </section>
+
+        <section id="services" class="page">
+            <h2 class="section-title">Biz Taklif Etadigan Xizmatlar</h2>
+            <div class="services-grid" id="servicesGrid">
+                <p>Xizmatlar yuklanmoqda...</p>
+            </div>
+        </section>
+
+        <section id="chat" class="page">
+            <h2 class="section-title">Jonli Yordam Chat</h2>
+            <div class="chat-wrapper">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3><i class="far fa-comments"></i> Texnik Yordam</h3>
+                        <p>Savollaringiz bo'lsa, bizga yozing!</p>
+                    </div>
+                    <div class="chat-messages" id="chatMessagesUser">
+                    </div>
+                    <div id="imagePreviewContainerUser" class="image-preview-container hidden">
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="file" id="imageInputUser" accept="image/*" onchange="previewImage('User')">
+                        <button class="btn-icon btn-attach" title="Rasm biriktirish" onclick="document.getElementById('imageInputUser').click()"><i class="fas fa-paperclip"></i></button>
+                        <input type="text" id="messageInputUser" placeholder="Xabaringizni yozing..." onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMessageUser(); }">
+                        <button class="btn btn-primary btn-send" onclick="sendMessageUser()"><i class="fas fa-paper-plane"></i> Yuborish</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer id="main-footer">
+    <div class="container">
+        <p>&copy; <span id="currentYear">2025</span> TechService.</p>
+    </div>
+</footer>
+
+<script src="/js/index.js"></script>
+</body>
+</html>
