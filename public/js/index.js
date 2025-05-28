@@ -1,234 +1,206 @@
-let menuToggleBtnAdmin;
-let navLinksAdmin;
-let selectedFileAdmin = null;
+let menuToggleBtn;
+let navLinks;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Admin DOM yuklandi.');
-    checkLoginState();
+    console.log('DOM to\'liq yuklandi va tahlil qilindi.');
 
-    menuToggleBtnAdmin = document.getElementById('menu-toggle-btn-admin');
-    navLinksAdmin = document.querySelector('#main-header.admin-header .nav-links');
+    menuToggleBtn = document.getElementById('menu-toggle-btn');
+    navLinks = document.querySelector('#navbar .nav-links');
 
-    if (menuToggleBtnAdmin && navLinksAdmin) {
-        console.log('Admin mobil menyu tugmasi va linklari topildi.');
-        menuToggleBtnAdmin.addEventListener('click', () => {
-            navLinksAdmin.classList.toggle('active');
-            const icon = menuToggleBtnAdmin.querySelector('i');
-            if (navLinksAdmin.classList.contains('active')) {
+    const navElements = document.querySelectorAll('#navbar .nav-link[data-page], #navbar .logo-link[data-page]');
+    console.log('Navigatsiya elementlari topildi:', navElements.length, navElements);
+
+    navElements.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const pageId = this.getAttribute('data-page');
+            console.log('Navigatsiya linki bosildi, pageId:', pageId, 'Element:', this);
+            showPage(pageId);
+
+            if (navLinks && navLinks.classList.contains('active') && menuToggleBtn) {
+                navLinks.classList.remove('active');
+                const icon = menuToggleBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+                menuToggleBtn.setAttribute('aria-expanded', 'false');
+                console.log('Mobil menyu yopildi (link bosilganda).');
+            }
+        });
+    });
+
+    if (menuToggleBtn && navLinks) {
+        console.log('Mobil menyu tugmasi va linklari topildi.');
+        menuToggleBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = menuToggleBtn.querySelector('i');
+            if (navLinks.classList.contains('active')) {
                 icon.classList.remove('fa-bars');
                 icon.classList.add('fa-times');
+                menuToggleBtn.setAttribute('aria-expanded', 'true');
+                console.log('Mobil menyu ochildi.');
             } else {
                 icon.classList.remove('fa-times');
                 icon.classList.add('fa-bars');
+                menuToggleBtn.setAttribute('aria-expanded', 'false');
+                console.log('Mobil menyu yopildi (toggle orqali).');
             }
         });
     } else {
-        console.warn('Admin mobil menyu tugmasi yoki linklari topilmadi.');
+        console.warn('Mobil menyu tugmasi yoki linklari topilmadi.');
     }
 
-    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-        setInterval(loadAdminChatMessages, 7000);
-    }
+    console.log('Boshlang\'ich sozlamalar boshlanmoqda...');
+    showPage('home');
+    loadWorkingHoursUser();
+    setInterval(loadChatMessagesUser, 7000);
 
-    const currentYearSpanAdmin = document.getElementById('currentYearAdmin');
-    if (currentYearSpanAdmin) {
-        currentYearSpanAdmin.textContent = new Date().getFullYear();
+    const currentYearSpan = document.getElementById('currentYear');
+    if (currentYearSpan) {
+        currentYearSpan.textContent = new Date().getFullYear();
     }
 });
 
-function checkLoginState() {
-    console.log('Admin login holati tekshirilmoqda.');
-    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-        showAdminPanel();
+let currentVisiblePage = 'home';
+let selectedFileUser = null;
+
+function showPage(pageId) {
+    console.log('[showPage] Funksiya chaqirildi, pageId:', pageId);
+
+    if (!pageId) {
+        console.warn('[showPage] pageId bo\'sh. "home" ga o\'rnatilmoqda.');
+        pageId = 'home';
+    }
+
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    console.log('[showPage] Barcha .page elementlari yashirildi.');
+
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        currentVisiblePage = pageId;
+        console.log(`[showPage] Sahifa #${pageId} aktivlashtirildi.`);
     } else {
-        showAdminLoginPage();
-    }
-}
-
-function showAdminLoginPage() {
-    console.log('Admin login sahifasi ko\'rsatilmoqda.');
-    document.getElementById('admin-login-page').classList.remove('hidden');
-    document.getElementById('admin-login-page').classList.add('active');
-    document.getElementById('admin-panel-page').classList.add('hidden');
-    document.getElementById('admin-panel-page').classList.remove('active');
-    document.getElementById('logoutButton').classList.add('hidden');
-}
-
-function showAdminPanel() {
-    console.log('Admin paneli ko\'rsatilmoqda.');
-    document.getElementById('admin-login-page').classList.add('hidden');
-    document.getElementById('admin-login-page').classList.remove('active');
-    document.getElementById('admin-panel-page').classList.remove('hidden');
-    document.getElementById('admin-panel-page').classList.add('active');
-    document.getElementById('logoutButton').classList.remove('hidden');
-    loadAdminPanelData();
-}
-
-async function handleAdminLogin() {
-    console.log('Admin login urinishi...');
-    const username = document.getElementById('adminUsername').value;
-    const password = document.getElementById('adminPassword').value;
-    const loginErrorP = document.getElementById('loginError');
-    loginErrorP.textContent = '';
-
-    try {
-        const response = await fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const result = await response.json();
-        if (response.ok && result.success) {
-            console.log('Admin muvaffaqiyatli kirdi.');
-            sessionStorage.setItem('isAdminLoggedIn', 'true');
-            showAdminPanel();
-            setInterval(loadAdminChatMessages, 7000);
+        console.error(`[showPage] ID si "${pageId}" bo'lgan .page elementi topilmadi! Bosh sahifa ko'rsatilmoqda.`);
+        const homePage = document.getElementById('home');
+        if (homePage) {
+            homePage.classList.add('active');
+            currentVisiblePage = 'home';
         } else {
-            console.warn('Admin login xatosi:', result.message);
-            loginErrorP.textContent = result.message || 'Login yoki parol xato.';
-            sessionStorage.removeItem('isAdminLoggedIn');
+            console.error("[showPage] Hatto 'home' sahifasi ham topilmadi! HTML strukturasini tekshiring.");
         }
-    } catch (error) {
-        console.error('Admin login API xatoligi:', error);
-        loginErrorP.textContent = 'Login paytida xatolik: Server bilan bog\'lanib bo\'lmadi.';
-        sessionStorage.removeItem('isAdminLoggedIn');
     }
-}
 
-function adminLogout() {
-    console.log('Admin tizimdan chiqmoqda.');
-    sessionStorage.removeItem('isAdminLoggedIn');
-    showAdminLoginPage();
-    alert('Tizimdan chiqdingiz.');
-}
-
-function loadAdminPanelData() {
-    if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') return;
-    console.log('Admin paneli ma\'lumotlari yuklanmoqda...');
-    loadAdminChatMessages();
-    loadCurrentWorkingHoursForAdmin();
-    setTimeout(() => {
-        const chatContainer = document.getElementById('adminChatMessages');
-        if(chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-    }, 200);
-}
-
-async function addServiceAdmin() {
-    console.log('Yangi xizmat qo\'shish urinishi...');
-    const name = document.getElementById('serviceName').value.trim();
-    const description = document.getElementById('serviceDescription').value.trim();
-    const priceText = document.getElementById('servicePrice').value;
-    const price = parseInt(priceText);
-
-    if (!name || !description || !priceText || isNaN(price) || price <= 0) {
-        alert('Barcha maydonlarni to\'g\'ri to\'ldiring! Narx musbat son bo\'lishi kerak.');
-        return;
-    }
-    console.log('Xizmat ma\'lumotlari:', {name, description, price});
-
-    try {
-        const response = await fetch('/api/services', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description, price })
-        });
-        if (response.ok) {
-            alert('Yangi xizmat muvaffaqiyatli qo\'shildi!');
-            document.getElementById('serviceName').value = '';
-            document.getElementById('serviceDescription').value = '';
-            document.getElementById('servicePrice').value = '';
-        } else {
-            const errorData = await response.json().catch(()=>({message: "Serverdan noma'lum xatolik"}));
-            console.error('Xizmat qo\'shishda server xatoligi:', errorData);
-            alert(`Xizmat qo'shishda xatolik: ${errorData.message || response.statusText}`);
+    document.querySelectorAll('#navbar .nav-links .nav-link[data-page]').forEach(link => {
+        link.classList.remove('active-link');
+        if (link.getAttribute('data-page') === currentVisiblePage) {
+            link.classList.add('active-link');
         }
-    } catch (error) {
-        console.error('Xizmat qo\'shishda API xatoligi:', error);
-        alert('Xizmat qo\'shishda server xatoligi.');
+    });
+    const logoLink = document.querySelector('#navbar .logo-link[data-page]');
+    if (logoLink) {
+        logoLink.classList.remove('active-link');
+    }
+    console.log('[showPage] Navigatsiya linklaridagi "active-link" yangilandi.');
+
+    if (currentVisiblePage === 'services') {
+        console.log('[showPage] Xizmatlar uchun ma\'lumotlar yuklanmoqda...');
+        loadServicesForUser();
+    } else if (currentVisiblePage === 'chat') {
+        console.log('[showPage] Chat xabarlari yuklanmoqda...');
+        loadChatMessagesUser();
+        setTimeout(() => {
+            const chatContainer = document.getElementById('chatMessagesUser');
+            if(chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+        }, 200);
     }
 }
 
-async function updateWorkingHoursAdmin() {
-    console.log('Ish vaqtini yangilash urinishi...');
-    const days = document.getElementById('workDays').value;
-    const startTime = document.getElementById('startTime').value;
-    const endTime = document.getElementById('endTime').value;
-
-    if (!days || !startTime || !endTime) {
-        alert('Ish vaqti uchun barcha maydonlarni to\'ldiring!');
-        return;
-    }
-    console.log('Yangi ish vaqti:', {days, startTime, endTime});
-
+async function loadServicesForUser() {
+    console.log('[loadServicesForUser] chaqirildi');
     try {
-        const response = await fetch('/api/settings/working-hours', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ days, startTime, endTime })
-        });
-        if (response.ok) {
-            alert('Ish vaqti muvaffaqiyatli yangilandi!');
-            loadCurrentWorkingHoursForAdmin();
-        } else {
-            const errorData = await response.json().catch(()=>({message: "Serverdan noma'lum xatolik"}));
-            console.error('Ish vaqtini yangilashda server xatoligi:', errorData);
-            alert(`Ish vaqtini yangilashda xatolik: ${errorData.message || response.statusText}`);
-        }
-    } catch (error) {
-        console.error('Ish vaqtini yangilashda API xatoligi:', error);
-        alert('Ish vaqtini yangilashda server xatoligi.');
-    }
-}
-
-async function loadCurrentWorkingHoursForAdmin() {
-    console.log('Admin uchun joriy ish vaqti yuklanmoqda...');
-    try {
-        const response = await fetch('/api/settings/working-hours');
+        const response = await fetch('/api/services');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const wh = await response.json();
-        console.log('Olingan ish vaqti:', wh);
+        const services = await response.json();
+        console.log('[loadServicesForUser] Xizmatlar olindi:', services);
 
-        const display = document.getElementById('currentWorkingHoursAdmin');
-        const daysSelect = document.getElementById('workDays');
-        const startTimeInput = document.getElementById('startTime');
-        const endTimeInput = document.getElementById('endTime');
+        const grid = document.getElementById('servicesGrid');
+        if (!grid) {
+            console.error('[loadServicesForUser] servicesGrid elementi topilmadi.');
+            return;
+        }
+        grid.innerHTML = '';
 
-        if (!display || !daysSelect || !startTimeInput || !endTimeInput) {
-            console.error('Ish vaqti uchun DOM elementlari topilmadi.');
+        if (!services || services.length === 0) {
+            grid.innerHTML = '<p>Hozircha xizmatlar mavjud emas.</p>';
             return;
         }
 
-        const daysText = {
-            'dush-juma': 'Dushanba - Juma',
-            'dush-shan': 'Dushanba - Shanba',
-            'har-kun': 'Har kuni'
-        };
-        display.textContent = `${daysText[wh.days] || wh.days || 'Noma\'lum'}: ${wh.startTime || '--:--'} - ${wh.endTime || '--:--'}`;
-
-        if(wh.days) daysSelect.value = wh.days;
-        if(wh.startTime) startTimeInput.value = wh.startTime;
-        if(wh.endTime) endTimeInput.value = wh.endTime;
-
+        services.forEach(service => {
+            const card = document.createElement('div');
+            card.className = 'service-card';
+            const escapedServiceName = service.name.replace(/'/g, "\\'").replace(/"/g, '\\"');
+            card.innerHTML = `
+                <h3>${service.name}</h3>
+                <p>${service.description}</p>
+                <div class="price">${service.price.toLocaleString()}</div> 
+                <button class="btn btn-primary" onclick="purchaseService(${service.id}, '${escapedServiceName}', ${service.price})">Sotib Olish</button>
+            `;
+            grid.appendChild(card);
+        });
     } catch (error) {
-        console.error('Admin uchun ish vaqtini yuklashda xatolik:', error);
-        const display = document.getElementById('currentWorkingHoursAdmin');
-        if (display) display.textContent = 'Ish vaqtini yuklashda xatolik.';
+        console.error('[loadServicesForUser] Xizmatlarni yuklashda xatolik:', error);
+        const grid = document.getElementById('servicesGrid');
+        if (grid) grid.innerHTML = '<p>Xizmatlarni yuklashda xatolik yuz berdi.</p>';
+    }
+}
+
+async function purchaseService(serviceId, serviceName, servicePrice) {
+    console.log(`[purchaseService] chaqirildi: ID ${serviceId}, Nomi ${serviceName}`);
+    const confirmation = confirm(`"${serviceName}" xizmatini (${servicePrice.toLocaleString()} so'm) sotib olishni tasdiqlaysizmi?`);
+    if (!confirmation) {
+        console.log('[purchaseService] Sotib olish bekor qilindi.');
+        return;
+    }
+
+    alert(`"${serviceName}" xizmati uchun buyurtma qabul qilindi! Tez orada siz bilan bog'lanamiz.`);
+
+    const messageText = `Men "${serviceName}" xizmatini (${servicePrice.toLocaleString()} so'm) sotib olmoqchiman. Xizmat ID: ${serviceId}`;
+    const formData = new FormData();
+    formData.append('user', 'user');
+    formData.append('text', messageText);
+
+    try {
+        const response = await fetch('/api/chat/messages', { method: 'POST', body: formData });
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({message: "Server bilan bog'lanishda noma'lum xatolik"}));
+            // noinspection ExceptionCaughtLocallyJS
+            throw new Error(`Server xatoligi: ${response.status} - ${errData.message}`);
+        }
+        console.log('[purchaseService] Buyurtma xabari chatga yuborildi.');
+        showPage('chat');
+    } catch (error) {
+        console.error('[purchaseService] Buyurtma xabarini chatga yuborishda xatolik:', error);
+        alert(`Buyurtma xabarini chatga yuborishda xatolik: ${error.message}`);
     }
 }
 
 function previewImage(userTypeSuffix) {
-    console.log(`[previewImage AdminJS] chaqirildi: ${userTypeSuffix} uchun`);
+    console.log(`[previewImage] chaqirildi: ${userTypeSuffix} uchun`);
     const fileInput = document.getElementById(`imageInput${userTypeSuffix}`);
     const previewContainer = document.getElementById(`imagePreviewContainer${userTypeSuffix}`);
 
     if (!fileInput || !previewContainer) {
-        console.error(`[previewImage AdminJS] Elementlar topilmadi: imageInput${userTypeSuffix} yoki imagePreviewContainer${userTypeSuffix}`);
+        console.error(`[previewImage] Elementlar topilmadi: imageInput${userTypeSuffix} yoki imagePreviewContainer${userTypeSuffix}`);
         return;
     }
 
     if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
-        console.log(`[previewImage AdminJS] Fayl tanlandi: ${file.name}`);
+        console.log(`[previewImage] Fayl tanlandi: ${file.name}, ${file.size} bayt`);
 
         if (!file.type.startsWith('image/')) {
             alert('Faqat rasm fayllarini yuklashingiz mumkin (masalan, PNG, JPG, GIF).');
@@ -243,7 +215,8 @@ function previewImage(userTypeSuffix) {
             return;
         }
 
-        if (userTypeSuffix === 'Admin') selectedFileAdmin = file;
+        if (userTypeSuffix === 'User') selectedFileUser = file;
+        else if (typeof selectedFileAdmin !== 'undefined' && userTypeSuffix === 'Admin') selectedFileAdmin = file;
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -256,18 +229,20 @@ function previewImage(userTypeSuffix) {
         }
         reader.readAsDataURL(file);
     } else {
+        console.log(`[previewImage] Fayl tanlanmadi yoki bekor qilindi: ${userTypeSuffix} uchun`);
         clearImagePreview(userTypeSuffix);
     }
 }
 
 function clearImagePreview(userTypeSuffix) {
-    console.log(`[clearImagePreview AdminJS] chaqirildi: ${userTypeSuffix} uchun`);
+    console.log(`[clearImagePreview] chaqirildi: ${userTypeSuffix} uchun`);
     const fileInput = document.getElementById(`imageInput${userTypeSuffix}`);
     const previewContainer = document.getElementById(`imagePreviewContainer${userTypeSuffix}`);
 
     if(fileInput) fileInput.value = '';
 
-    if (userTypeSuffix === 'Admin') selectedFileAdmin = null;
+    if (userTypeSuffix === 'User') selectedFileUser = null;
+    else if (typeof selectedFileAdmin !== 'undefined' && userTypeSuffix === 'Admin') selectedFileAdmin = null;
 
     if(previewContainer) {
         previewContainer.classList.add('hidden');
@@ -275,80 +250,158 @@ function clearImagePreview(userTypeSuffix) {
     }
 }
 
-async function loadAdminChatMessages() {
-    if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') return;
+async function sendMessageUser() {
+    console.log('[sendMessageUser] chaqirildi');
+    const textInput = document.getElementById('messageInputUser');
+    const text = textInput.value.trim();
+
+    if (!text && !selectedFileUser) {
+        console.log('[sendMessageUser] Yuborish uchun matn yoki rasm yo\'q.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('user', 'user');
+    if (text) formData.append('text', text);
+    if (selectedFileUser) formData.append('chatImage', selectedFileUser);
+    console.log('[sendMessageUser] FormData tayyorlandi:', {text_sent: !!text, image_sent: !!selectedFileUser});
+
+    try {
+        textInput.disabled = true;
+        const sendButton = document.querySelector('.chat-input-area .btn-send');
+        if(sendButton) sendButton.disabled = true;
+
+        const response = await fetch('/api/chat/messages', { method: 'POST', body: formData });
+
+        textInput.disabled = false;
+        if(sendButton) sendButton.disabled = false;
+
+        if (response.ok) {
+            textInput.value = '';
+            clearImagePreview('User');
+            await loadChatMessagesUser();
+            const chatContainer = document.getElementById('chatMessagesUser');
+            if(chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+        } else {
+            const errorResult = await response.json().catch(() => ({ message: "Serverdan noma'lum xatolik" }));
+            console.error(`[sendMessageUser] Xabarni yuborishda xatolik: ${response.status}`, errorResult);
+            alert(`Xabarni yuborishda xatolik: ${errorResult.message}`);
+        }
+    } catch (error) {
+        console.error('[sendMessageUser] Xabarni yuborishda server bilan bog\'lanishda xatolik:', error);
+        alert('Xabarni yuborishda server bilan bog\'lanishda xatolik.');
+        textInput.disabled = false;
+        const sendButton = document.querySelector('.chat-input-area .btn-send');
+        if(sendButton) sendButton.disabled = false;
+    }
+}
+
+async function loadChatMessagesUser() {
     try {
         const response = await fetch('/api/chat/messages');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const messages = await response.json();
 
-        const container = document.getElementById('adminChatMessages');
+        const container = document.getElementById('chatMessagesUser');
         if (!container) {
             return;
         }
 
-        const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 10;
+        const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 10; // 10px chegarasi
+
+
         container.innerHTML = '';
 
         if (!messages || messages.length === 0) {
-            container.innerHTML = '<p style="color: #666; text-align: center;">Hozircha xabarlar yo\'q</p>';
+            const welcomeMsgDiv = document.createElement('div');
+            welcomeMsgDiv.className = 'message admin';
+            welcomeMsgDiv.innerHTML = `<span class="sender">Admin</span> Salom! Sizga qanday yordam bera olaman?`;
+            container.appendChild(welcomeMsgDiv);
         } else {
             messages.forEach(msg => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${msg.user}`;
-                messageDiv.style.backgroundColor = msg.user === 'user' ? '#e3f2fd' : '#f1f8e9';
-                messageDiv.style.border = `1px solid ${msg.user === 'user' ? '#bbdefb' : '#dcedc8'}`;
 
-                let messageContent = `<span class="sender">${msg.user === 'user' ? 'Foydalanuvchi' : 'Siz (Admin)'}</span>`;
+                let messageContent = `<span class="sender">${msg.user === 'user' ? 'Siz' : 'Admin'}</span>`;
                 if (msg.text) {
                     const linkedText = msg.text.replace(/(https?:\/\/[^\s!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-                    messageContent += `<p>${linkedText}</p>`;
+                    messageContent += `<div class="message-text" style="margin-bottom: ${msg.imageUrl ? '5px' : '0'}; white-space: pre-wrap;">${linkedText}</div>`;
                 }
-                if (msg.image) {
-                    messageContent += `<img src="${msg.image}" alt="Xabar rasmi" style="max-width: 200px; display: block; margin-top: 5px;">`;
+                if (msg.imageUrl) {
+                    messageContent += `<img src="${msg.imageUrl}" alt="Chatdagi rasm" class="chat-image" onclick="openImageModal('${msg.imageUrl}')">`;
                 }
+                const displayTimestamp = msg.timestamp || new Date(msg.id).toLocaleTimeString('uz-UZ', {hour: '2-digit', minute: '2-digit'});
+                messageContent += `<span class="timestamp">${displayTimestamp}</span>`;
+
                 messageDiv.innerHTML = messageContent;
                 container.appendChild(messageDiv);
             });
         }
 
-        if (isScrolledToBottom) {
-            container.scrollTop = container.scrollHeight;
+        if (currentVisiblePage === 'chat') {
+            if (isScrolledToBottom || messages.length < 5 ) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
+
     } catch (error) {
-        console.error('Chat xabarlarini yuklashda xatolik:', error);
     }
 }
 
-async function sendAdminChatMessage() {
-    const messageInput = document.getElementById('adminChatInput');
-    const text = messageInput.value.trim();
-
-    if (!text && !selectedFileAdmin) {
-        alert('Xabar matni yoki rasm tanlashingiz kerak.');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('user', 'admin');
-    if (text) formData.append('text', text);
-    if (selectedFileAdmin) formData.append('image', selectedFileAdmin);
-
+async function loadWorkingHoursUser() {
+    console.log('[loadWorkingHoursUser] chaqirildi');
     try {
-        const response = await fetch('/api/chat/messages', {
-            method: 'POST',
-            body: formData
-        });
-        if (response.ok) {
-            messageInput.value = '';
-            clearImagePreview('Admin');
-            selectedFileAdmin = null;
-            loadAdminChatMessages();
-        } else {
-            alert('Xabar yuborishda xatolik yuz berdi.');
+        const response = await fetch('/api/settings/working-hours');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const wh = await response.json();
+        console.log('[loadWorkingHoursUser] Ish vaqti olindi:', wh);
+
+        const display = document.getElementById('currentWorkingHoursUser');
+        if (!display) {
+            console.error('[loadWorkingHoursUser] currentWorkingHoursUser elementi topilmadi.');
+            return;
         }
+
+        const daysText = {
+            'dush-juma': 'Dushanba - Juma',
+            'dush-shan': 'Dushanba - Shanba',
+            'har-kun': 'Har kuni'
+        };
+        display.textContent = `${daysText[wh.days] || wh.days || 'Noma\'lum'}: ${wh.startTime || '--:--'} - ${wh.endTime || '--:--'}`;
     } catch (error) {
-        console.error('Xabar yuborishda xatolik:', error);
-        alert('Xabar yuborishda xatolik yuz berdi.');
+        console.error('[loadWorkingHoursUser] Ish vaqtini yuklashda xatolik:', error);
+        const display = document.getElementById('currentWorkingHoursUser');
+        if (display) display.textContent = 'Ish vaqtini yuklashda xatolik.';
     }
+}
+
+function openImageModal(imageUrl) {
+    console.log('[openImageModal] chaqirildi, URL:', imageUrl);
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.left = '0';
+    modal.style.top = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.85)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.zIndex = '2000';
+    modal.onclick = () => {
+        document.body.removeChild(modal);
+        console.log('[openImageModal] Modal yopildi.');
+    };
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '90%';
+    img.style.border = '3px solid white';
+    img.style.borderRadius = '5px';
+    img.style.boxShadow = '0 0 25px rgba(0,0,0,0.5)';
+
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+    console.log('[openImageModal] Modal ko\'rsatildi.');
 }
